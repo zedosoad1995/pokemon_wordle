@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  db-test:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pokemon_wordle
+    ports:
+      - "15444:5432"
