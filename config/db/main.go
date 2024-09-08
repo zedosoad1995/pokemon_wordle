@@ -14,13 +14,14 @@ type Pokemon struct {
 	Name        string
 	Type1       string
 	Type2       string
-	Height      float32
-	Weight      float32
+	Height      float64
+	Weight      float64
 	IsLegendary bool
 	Gen         uint8
+	BaseTotal   uint16
 }
 
-func Init() {
+func Init() *gorm.DB {
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASS")
 	host := os.Getenv("DB_HOST")
@@ -37,4 +38,6 @@ func Init() {
 	}
 
 	db.AutoMigrate(&Pokemon{})
+
+	return db
 }

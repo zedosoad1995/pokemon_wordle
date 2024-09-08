@@ -1,17 +1,11 @@
 package main
 
 import (
-	"log"
-
-	"github.com/joho/godotenv"
 	"github.com/zedosoad1995/pokemon-wordle/config/db"
+	"github.com/zedosoad1995/pokemon-wordle/config/env"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
+	env.LoadEnvs()
 	db.Init()
 }
