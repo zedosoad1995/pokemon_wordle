@@ -6,8 +6,9 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
-	"github.com/zedosoad1995/pokemon-wordle/config/db"
+	db_pkg "github.com/zedosoad1995/pokemon-wordle/config/db"
 	"github.com/zedosoad1995/pokemon-wordle/config/env"
 )
 
@@ -37,20 +38,20 @@ func main() {
 		return
 	}
 
-	dbInstance := db.Init()
+	db := db_pkg.Init()
 
 	for _, record := range records {
 		baseTotal, _ := strconv.ParseUint(record[headerMap["base_total"]], 10, 16)
 		height, _ := strconv.ParseFloat(record[headerMap["height_m"]], 64)
 		name := record[headerMap["name"]]
 		pokedexNum, _ := strconv.ParseUint(record[headerMap["pokedex_number"]], 10, 16)
-		type1 := record[headerMap["type1"]]
-		type2 := record[headerMap["type2"]]
+		type1 := nilIfEmpty(record[headerMap["type1"]])
+		type2 := nilIfEmpty(record[headerMap["type2"]])
 		weight, _ := strconv.ParseFloat(record[headerMap["weight_kg"]], 64)
 		gen, _ := strconv.ParseUint(record[headerMap["generation"]], 10, 8)
 		isLegendary, _ := stringToBool(record[headerMap["is_legendary"]])
 
-		pokemon := db.Pokemon{
+		pokemon := db_pkg.Pokemon{
 			BaseTotal:   uint16(baseTotal),
 			Height:      height,
 			Name:        name,
@@ -61,7 +62,7 @@ func main() {
 			Gen:         uint8(gen),
 			IsLegendary: isLegendary,
 		}
-		dbInstance.Create(&pokemon)
+		db.Create(&pokemon)
 	}
 }
 
@@ -74,4 +75,12 @@ func stringToBool(s string) (bool, error) {
 	default:
 		return false, fmt.Errorf("invalid input: %s", s)
 	}
+}
+
+func nilIfEmpty(s string) *string {
+	trimmed := strings.TrimSpace(s)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
 }

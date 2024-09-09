@@ -1,4 +1,4 @@
-package db
+package db_pkg
 
 import (
 	"fmt"
@@ -12,8 +12,8 @@ type Pokemon struct {
 	gorm.Model
 	PokedexNum  uint16
 	Name        string
-	Type1       string
-	Type2       string
+	Type1       *string
+	Type2       *string
 	Height      float64
 	Weight      float64
 	IsLegendary bool
