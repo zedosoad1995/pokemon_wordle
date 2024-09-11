@@ -1,4 +1,4 @@
-package constants
+package poke_types
 
 const (
 	Water    = "water"
