@@ -1,0 +1,1 @@
+Marowak is not of type fire. Check if there are more wrong types (sandshrew, sandslash, vulpix, ninetails, ...)

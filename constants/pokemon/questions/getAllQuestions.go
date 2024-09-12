@@ -6,19 +6,19 @@ import (
 )
 
 type possibleQuestionsBody struct {
-	condition func(pokemon.Pokemon) bool
-	text      string
+	Condition func(pokemon.Pokemon) bool
+	Text      string
 }
 
 func getAllQuestions() map[string]possibleQuestionsBody {
 	allQuestions := map[string]possibleQuestionsBody{
 		HasOnlyOneType: {
-			condition: pokemon.HasOnlyOneType,
-			text:      "Only has one type",
+			Condition: pokemon.HasOnlyOneType,
+			Text:      "Only has one type",
 		},
 		HasTwoTypes: {
-			condition: pokemon.HasOnlyOneType,
-			text:      "Has 2 types",
+			Condition: pokemon.HasTwoTypes,
+			Text:      "Has 2 types",
 		},
 	}
 
@@ -27,8 +27,8 @@ func getAllQuestions() map[string]possibleQuestionsBody {
 		text := "Type " + pokeType
 
 		q := possibleQuestionsBody{
-			text:      text,
-			condition: pokemon.HasType(pokeType),
+			Text:      text,
+			Condition: pokemon.HasType(pokeType),
 		}
 
 		allQuestions[label] = q

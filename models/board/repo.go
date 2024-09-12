@@ -1,8 +1,13 @@
 package board
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
+	poke_questions "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/questions"
+	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
+	"github.com/zedosoad1995/pokemon-wordle/utils"
 	"gorm.io/gorm"
 )
 
@@ -64,6 +69,49 @@ func Insert(db *gorm.DB, body InsertBody) (bool, error) {
 	}
 	if err := db.Create(&newBoard).Error; err != nil {
 		return false, err
+	}
+
+	return true, nil
+}
+
+func GetAnswers(db *gorm.DB, boardNum uint) (bool, error) {
+	var board Board
+	err := db.Where("board_num = ?", boardNum).First(&board).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, fmt.Errorf("Board %d does not exist", boardNum)
+		}
+
+		return false, err
+
+	}
+
+	rows := []string{board.Row1, board.Row2, board.Row3}
+	cols := []string{board.Col1, board.Col2, board.Col3}
+
+	for _, row := range rows {
+		if !utils.Includes(poke_questions.QuestionLabels, row) {
+			return false, fmt.Errorf("question %v does not exist", row)
+		}
+	}
+
+	for _, col := range cols {
+		if !utils.Includes(poke_questions.QuestionLabels, col) {
+			return false, fmt.Errorf("question %v does not exist", col)
+		}
+
+	}
+
+	pokemons := pokemon.GetPokemonsByGen(db, 1)
+
+	for _, row := range rows {
+		for _, col := range cols {
+			answers := pokemons.Filter(
+				poke_questions.AllQuestions[row].Condition,
+				poke_questions.AllQuestions[col].Condition,
+			)
+		}
 	}
 
 	return true, nil
