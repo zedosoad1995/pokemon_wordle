@@ -10,6 +10,7 @@ import (
 
 	db_pkg "github.com/zedosoad1995/pokemon-wordle/config/db"
 	"github.com/zedosoad1995/pokemon-wordle/config/env"
+	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
 )
 
 func main() {
@@ -39,6 +40,7 @@ func main() {
 	}
 
 	db := db_pkg.Init()
+	db.Delete(&pokemon.Pokemon{})
 
 	for _, record := range records {
 		baseTotal, _ := strconv.ParseUint(record[headerMap["base_total"]], 10, 16)
@@ -51,7 +53,7 @@ func main() {
 		gen, _ := strconv.ParseUint(record[headerMap["generation"]], 10, 8)
 		isLegendary, _ := stringToBool(record[headerMap["is_legendary"]])
 
-		pokemon := db_pkg.Pokemon{
+		pokemon := pokemon.Pokemon{
 			BaseTotal:   uint16(baseTotal),
 			Height:      height,
 			Name:        name,

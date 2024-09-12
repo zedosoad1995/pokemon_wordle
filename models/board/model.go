@@ -8,8 +8,8 @@ import (
 
 type Board struct {
 	gorm.Model
-	BoardNum uint32
-	Date     time.Time `gorm:"type:date"`
+	BoardNum uint32    `gorm:"unique;not null"`
+	Date     time.Time `gorm:"type:date;unique"`
 	Col1     string
 	Col2     string
 	Col3     string
