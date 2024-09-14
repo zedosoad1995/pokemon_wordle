@@ -11,6 +11,22 @@ import (
 	"gorm.io/gorm"
 )
 
+func GetBoardByNum(db *gorm.DB, boardNum uint) (*Board, error) {
+	var board Board
+	err := db.Where("board_num = ?", boardNum).First(&board).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("Board %d does not exist", boardNum)
+		}
+
+		return nil, err
+
+	}
+
+	return &board, nil
+}
+
 type InsertBody struct {
 	BoardNum *uint32
 	Date     *time.Time
@@ -74,21 +90,9 @@ func Insert(db *gorm.DB, body InsertBody) error {
 	return nil
 }
 
-type Answers [3][3]pokemon.PokemonList
+type Answers [3][3][]string
 
-func GetAnswers(db *gorm.DB, boardNum uint) (*Answers, error) {
-	var board Board
-	err := db.Where("board_num = ?", boardNum).First(&board).Error
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("Board %d does not exist", boardNum)
-		}
-
-		return nil, err
-
-	}
-
+func GetAnswers(db *gorm.DB, board Board) (*Answers, error) {
 	rows := []string{board.Row1, board.Row2, board.Row3}
 	cols := []string{board.Col1, board.Col2, board.Col3}
 
@@ -102,7 +106,6 @@ func GetAnswers(db *gorm.DB, boardNum uint) (*Answers, error) {
 		if !utils.Includes(poke_questions.QuestionLabels, col) {
 			return nil, fmt.Errorf("question %v does not exist", col)
 		}
-
 	}
 
 	// TODO: not good to have this here
@@ -110,10 +113,14 @@ func GetAnswers(db *gorm.DB, boardNum uint) (*Answers, error) {
 	var answers Answers
 	for i, row := range rows {
 		for j, col := range cols {
-			answers[i][j] = pokemons.Filter(
+			filteredPokemons := pokemons.Filter(
 				poke_questions.AllQuestions[row].Condition,
 				poke_questions.AllQuestions[col].Condition,
 			)
+
+			answers[i][j] = utils.Map(filteredPokemons, func(p pokemon.Pokemon) string {
+				return p.Name
+			})
 		}
 	}
 
