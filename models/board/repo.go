@@ -22,7 +22,7 @@ type InsertBody struct {
 	Row3     string
 }
 
-func Insert(db *gorm.DB, body InsertBody) (bool, error) {
+func Insert(db *gorm.DB, body InsertBody) error {
 	// If no boardNum or date defined, it will go to the next boardNum/date
 	if body.BoardNum == nil || body.Date == nil {
 		type getBoard struct {
@@ -38,7 +38,7 @@ func Insert(db *gorm.DB, body InsertBody) (bool, error) {
 		`).Scan(&lastBoard)
 
 		if res.Error != nil {
-			return false, res.Error
+			return res.Error
 		}
 
 		if body.BoardNum == nil {
@@ -68,22 +68,24 @@ func Insert(db *gorm.DB, body InsertBody) (bool, error) {
 		Row3:     body.Row3,
 	}
 	if err := db.Create(&newBoard).Error; err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
-func GetAnswers(db *gorm.DB, boardNum uint) (bool, error) {
+type Answers [3][3]pokemon.PokemonList
+
+func GetAnswers(db *gorm.DB, boardNum uint) (*Answers, error) {
 	var board Board
 	err := db.Where("board_num = ?", boardNum).First(&board).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return false, fmt.Errorf("Board %d does not exist", boardNum)
+			return nil, fmt.Errorf("Board %d does not exist", boardNum)
 		}
 
-		return false, err
+		return nil, err
 
 	}
 
@@ -92,27 +94,28 @@ func GetAnswers(db *gorm.DB, boardNum uint) (bool, error) {
 
 	for _, row := range rows {
 		if !utils.Includes(poke_questions.QuestionLabels, row) {
-			return false, fmt.Errorf("question %v does not exist", row)
+			return nil, fmt.Errorf("question %v does not exist", row)
 		}
 	}
 
 	for _, col := range cols {
 		if !utils.Includes(poke_questions.QuestionLabels, col) {
-			return false, fmt.Errorf("question %v does not exist", col)
+			return nil, fmt.Errorf("question %v does not exist", col)
 		}
 
 	}
 
+	// TODO: not good to have this here
 	pokemons := pokemon.GetPokemonsByGen(db, 1)
-
-	for _, row := range rows {
-		for _, col := range cols {
-			answers := pokemons.Filter(
+	var answers Answers
+	for i, row := range rows {
+		for j, col := range cols {
+			answers[i][j] = pokemons.Filter(
 				poke_questions.AllQuestions[row].Condition,
 				poke_questions.AllQuestions[col].Condition,
 			)
 		}
 	}
 
-	return true, nil
+	return &answers, nil
 }

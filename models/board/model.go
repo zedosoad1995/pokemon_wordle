@@ -3,6 +3,7 @@ package board
 import (
 	"time"
 
+	"github.com/zedosoad1995/pokemon-wordle/models/answer"
 	"gorm.io/gorm"
 )
 
@@ -16,4 +17,5 @@ type Board struct {
 	Row1     string
 	Row2     string
 	Row3     string
+	Answers  []answer.Answer
 }
