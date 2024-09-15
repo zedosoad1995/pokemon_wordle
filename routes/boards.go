@@ -1,11 +1,15 @@
 package routes
 
 import (
-	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	poke_questions "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/questions"
 	"github.com/zedosoad1995/pokemon-wordle/models/board"
+	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
+	route_types "github.com/zedosoad1995/pokemon-wordle/routes/types"
 	"github.com/zedosoad1995/pokemon-wordle/utils"
 	"gorm.io/gorm"
 )
@@ -20,16 +24,36 @@ type GetBoardHandlerRes struct {
 	Board   BoardRes
 }
 
-func getBoardHandler(db *gorm.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		boardObj, _ := board.GetBoardByNum(db, 1)
-		if boardObj == nil {
-			// TODO: not found
+func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		boardNumStr := r.PathValue("boardNum")
+		boardNum, err := strconv.ParseUint(boardNumStr, 10, 0)
+		if err != nil {
+			return utils.SendJSON(w, 400, route_types.ErrorRes{
+				Message: "Invalid board number",
+			})
 		}
 
-		answers, _ := board.GetAnswers(db, *boardObj)
+		boardObj, err := board.GetBoardByNum(db, uint(boardNum))
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return utils.SendJSON(w, 404, route_types.ErrorRes{
+					Message: fmt.Sprintf("Board number %d does not exist", boardNum),
+				})
+			}
+
+			return err
+		}
+
+		pokemons, err := pokemon.GetPokemonsByGen(db, 1)
+		if err != nil {
+			return err
+		}
+
+		answers, err := board.GetAnswers(db, *boardObj, pokemons)
+		if err != nil {
+			return err
+		}
 
 		cols := []string{boardObj.Col1, boardObj.Col2, boardObj.Col3}
 		rows := []string{boardObj.Row1, boardObj.Row2, boardObj.Row3}
@@ -46,6 +70,6 @@ func getBoardHandler(db *gorm.DB) http.HandlerFunc {
 			Rows: transformedRows,
 		}
 
-		json.NewEncoder(w).Encode(GetBoardHandlerRes{Answers: *answers, Board: boardRes})
+		return utils.SendJSON(w, 200, GetBoardHandlerRes{Answers: *answers, Board: boardRes})
 	}
 }

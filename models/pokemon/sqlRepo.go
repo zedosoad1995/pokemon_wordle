@@ -2,14 +2,17 @@ package pokemon
 
 import "gorm.io/gorm"
 
-func GetPokemonsByGen(db *gorm.DB, gen int) PokemonList {
+func GetPokemonsByGen(db *gorm.DB, gen int) (PokemonList, error) {
 	var res []Pokemon
 
-	db.Raw(`
+	err := db.Raw(`
 		SELECT *
 		FROM pokemons
 		WHERE gen = ?
-	`, gen).Scan(&res)
+	`, gen).Scan(&res).Error
+	if err != nil {
+		return nil, err
+	}
 
-	return res
+	return res, nil
 }

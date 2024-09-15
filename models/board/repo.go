@@ -1,7 +1,6 @@
 package board
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -16,12 +15,7 @@ func GetBoardByNum(db *gorm.DB, boardNum uint) (*Board, error) {
 	err := db.Where("board_num = ?", boardNum).First(&board).Error
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("Board %d does not exist", boardNum)
-		}
-
 		return nil, err
-
 	}
 
 	return &board, nil
@@ -92,7 +86,7 @@ func Insert(db *gorm.DB, body InsertBody) error {
 
 type Answers [3][3][]string
 
-func GetAnswers(db *gorm.DB, board Board) (*Answers, error) {
+func GetAnswers(db *gorm.DB, board Board, pokemons pokemon.PokemonList) (*Answers, error) {
 	rows := []string{board.Row1, board.Row2, board.Row3}
 	cols := []string{board.Col1, board.Col2, board.Col3}
 
@@ -108,8 +102,6 @@ func GetAnswers(db *gorm.DB, board Board) (*Answers, error) {
 		}
 	}
 
-	// TODO: not good to have this here
-	pokemons := pokemon.GetPokemonsByGen(db, 1)
 	var answers Answers
 	for i, row := range rows {
 		for j, col := range cols {
