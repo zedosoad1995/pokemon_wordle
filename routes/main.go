@@ -13,4 +13,6 @@ func CreateRoutes(mux *http.ServeMux, db *gorm.DB) {
 	mux.HandleFunc("GET /api/pokemons", errorHandler(getPokemonsHandler(db)))
 
 	mux.HandleFunc("GET /api/boards/{boardNum}", errorHandler(getBoardHandler(db)))
+
+	mux.HandleFunc("PUT /api/boards/{boardNum}/answers", errorHandler(updateAnswerHandler(db)))
 }

@@ -14,3 +14,11 @@ func SendJSON[T any](w http.ResponseWriter, status int, v T) error {
 	}
 	return nil
 }
+
+func GetJSONBody[T any](r *http.Request) (T, error) {
+	var v T
+	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+		return v, fmt.Errorf("decode json: %w", err)
+	}
+	return v, nil
+}

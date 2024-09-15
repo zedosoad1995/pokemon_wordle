@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/zedosoad1995/pokemon-wordle/models/answer"
 	"github.com/zedosoad1995/pokemon-wordle/models/board"
 	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
+	"github.com/zedosoad1995/pokemon-wordle/models/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func Init() *gorm.DB {
-	user := os.Getenv("DB_USER")
+	dbUser := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASS")
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
@@ -19,7 +21,7 @@ func Init() *gorm.DB {
 	sslMode := os.Getenv("DB_SSL")
 
 	dsn := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
-		user, password, host, port, dbName, sslMode)
+		dbUser, password, host, port, dbName, sslMode)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -28,6 +30,8 @@ func Init() *gorm.DB {
 
 	db.AutoMigrate(&pokemon.Pokemon{})
 	db.AutoMigrate(&board.Board{})
+	db.AutoMigrate(&user.User{})
+	db.AutoMigrate(&answer.Answer{})
 
 	return db
 }

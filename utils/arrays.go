@@ -1,8 +1,8 @@
 package utils
 
-func Includes(arr []string, val string) bool {
-	for _, item := range arr {
-		if item == val {
+func Includes[T comparable](s []T, elem T) bool {
+	for _, item := range s {
+		if item == elem {
 			return true
 		}
 	}

@@ -1,14 +1,17 @@
 package main
 
 import (
+	"fmt"
+
 	db_pkg "github.com/zedosoad1995/pokemon-wordle/config/db"
 	"github.com/zedosoad1995/pokemon-wordle/config/env"
-	"github.com/zedosoad1995/pokemon-wordle/models/board"
+	"github.com/zedosoad1995/pokemon-wordle/models/answer"
 )
 
 func main() {
 	env.LoadEnvs()
 	db := db_pkg.Init()
 
-	board.GetAnswers(db, 1)
+	err := answer.UpsertAnswer(db, 1, 1, "lala", "1", 1)
+	fmt.Print(err)
 }

@@ -9,3 +9,13 @@ func Map[S ~[]E, E any, R any](s S, f mapFunc[E, R]) []R {
 	}
 	return result
 }
+
+func Some[S ~[]E, E any](s S, f func(E) bool) bool {
+	for _, el := range s {
+		if f(el) {
+			return true
+		}
+	}
+
+	return false
+}
