@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
@@ -25,8 +24,6 @@ func getPokemonsHandler(db *gorm.DB) route_types.RouteHandler {
 			return p.Name
 		})
 
-		json.NewEncoder(w).Encode(GetPokemonsRes{Pokemons: pokemonNames})
-
-		return nil
+		return utils.SendJSON(w, 200, GetPokemonsRes{Pokemons: pokemonNames})
 	}
 }

@@ -191,6 +191,8 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 			return err
 		}
 
-		return utils.SendJSON(w, 200, "")
+		return utils.SendJSON(w, 200, route_types.SuccessRes{
+			Message: "Updated answer.",
+		})
 	}
 }
