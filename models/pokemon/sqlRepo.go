@@ -16,3 +16,7 @@ func GetPokemonsByGen(db *gorm.DB, gen int) (PokemonList, error) {
 
 	return res, nil
 }
+
+func GetPokemons(db *gorm.DB) (PokemonList, error) {
+	return GetPokemonsByGen(db, 1);
+}

@@ -166,7 +166,7 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 		}
 
 		// TODO: maybe have another DB with all the answers, so it is more performant to check the answer
-		pokemons, err := pokemon.GetPokemonsByGen(db, 1)
+		pokemons, err := pokemon.GetPokemons(db)
 		if err != nil {
 			return err
 		}

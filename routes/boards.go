@@ -45,7 +45,7 @@ func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
 			return err
 		}
 
-		pokemons, err := pokemon.GetPokemonsByGen(db, 1)
+		pokemons, err := pokemon.GetPokemons(db)
 		if err != nil {
 			return err
 		}

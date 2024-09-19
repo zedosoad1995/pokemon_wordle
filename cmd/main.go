@@ -6,6 +6,7 @@ import (
 
 	db_pkg "github.com/zedosoad1995/pokemon-wordle/config/db"
 	"github.com/zedosoad1995/pokemon-wordle/config/env"
+	"github.com/zedosoad1995/pokemon-wordle/middlewares"
 	"github.com/zedosoad1995/pokemon-wordle/routes"
 )
 
@@ -17,6 +18,7 @@ func main() {
 	routes.CreateRoutes(mux, db)
 
 	var handler http.Handler = mux
+    handler = middlewares.ConfigCors(handler)
 
 	fmt.Println("Server running on port 8080")
 	http.ListenAndServe(":8080", handler)

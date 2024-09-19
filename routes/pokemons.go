@@ -10,12 +10,12 @@ import (
 )
 
 type GetPokemonsRes struct {
-	Pokemons []string
+	Pokemons []string `json:"pokemons"`
 }
 
 func getPokemonsHandler(db *gorm.DB) route_types.RouteHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		pokemons, err := pokemon.GetPokemonsByGen(db, 1)
+		pokemons, err := pokemon.GetPokemons(db)
 		if err != nil {
 			return err
 		}
