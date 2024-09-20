@@ -95,7 +95,7 @@ func getAnswersFreq(db *gorm.DB) route_types.RouteHandler {
 }
 
 type updateAnswerBody struct {
-	UserToken string `json:"user_token"`
+	UserToken string `json:"userToken"`
 	Row       int    `json:"row"`
 	Col       int    `json:"col"`
 	Answer    string `json:"answer"`

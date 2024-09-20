@@ -15,13 +15,13 @@ import (
 )
 
 type BoardRes struct {
-	Cols []string
-	Rows []string
+	Cols []string `json:"cols"`
+	Rows []string `json:"rows"`
 }
 
 type GetBoardHandlerRes struct {
-	Answers board.Answers
-	Board   BoardRes
+	Answers board.Answers `json:"answers"`
+	Board   BoardRes `json:"board"`
 }
 
 func getBoardHandler(db *gorm.DB) route_types.RouteHandler {

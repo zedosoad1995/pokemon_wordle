@@ -15,4 +15,5 @@ type Pokemon struct {
 	IsLegendary bool
 	Gen         uint8
 	BaseTotal   uint16
+	ImageUrl	*string
 }

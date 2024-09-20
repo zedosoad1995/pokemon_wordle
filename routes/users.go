@@ -14,7 +14,7 @@ type CreateUserBody struct {
 	Token string `json:"token"`
 }
 
-func createUser(db *gorm.DB) route_types.RouteHandler {
+func createUserHandler(db *gorm.DB) route_types.RouteHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		body, err := utils.GetJSONBody[CreateUserBody](r)
 		if err != nil {
