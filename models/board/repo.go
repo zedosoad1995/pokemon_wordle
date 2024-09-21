@@ -86,7 +86,7 @@ func Insert(db *gorm.DB, body InsertBody) error {
 
 type Answers [3][3][]string
 
-func GetAnswers(db *gorm.DB, board Board, pokemons pokemon.PokemonList) (*Answers, error) {
+func GetValidAnswers(db *gorm.DB, board Board, pokemons pokemon.PokemonList) (*Answers, error) {
 	rows := []string{board.Row1, board.Row2, board.Row3}
 	cols := []string{board.Col1, board.Col2, board.Col3}
 

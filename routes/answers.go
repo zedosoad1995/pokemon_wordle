@@ -7,6 +7,7 @@ import (
 
 	poke_questions "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/questions"
 	"github.com/zedosoad1995/pokemon-wordle/models/answer"
+	"github.com/zedosoad1995/pokemon-wordle/models/board"
 	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
 	"github.com/zedosoad1995/pokemon-wordle/models/user"
 	route_types "github.com/zedosoad1995/pokemon-wordle/routes/types"
@@ -128,8 +129,6 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 			return err
 		}
 
-		userId := strconv.FormatUint(uint64(userRes.ID), 10)
-
 		var res []struct {
 			BoardID  uint
 			Row1     string
@@ -155,7 +154,7 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 				ON boards.id = answers.board_id AND answers.user_id = ?
 			WHERE boards.board_num = ?
 			LIMIT 1`
-		if err := db.Raw(query, userId, boardNum).Scan(&res).Error; err != nil {
+		if err := db.Raw(query, userRes.ID, boardNum).Scan(&res).Error; err != nil {
 			return err
 		}
 
@@ -187,12 +186,131 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 			})
 		}
 
-		if err := answer.UpsertAnswer(db, body.Row, body.Col, body.Answer, userId, res[0].BoardID, res[0].AnswerID); err != nil {
+		if err := answer.UpsertSingleCell(db, body.Row, body.Col, body.Answer, userRes.ID, res[0].BoardID, res[0].AnswerID); err != nil {
 			return err
 		}
 
 		return utils.SendJSON(w, 200, route_types.SuccessRes{
 			Message: "Updated answer.",
+		})
+	}
+}
+
+type updateAnswersBody struct {
+	UserToken string     `json:"userToken"`
+	Answers   [][]string `json:"answers"`
+}
+
+func updateAnswersHandler(db *gorm.DB) route_types.RouteHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		boardNumStr := r.PathValue("boardNum")
+		// TODO: body validation
+		body, err := utils.GetJSONBody[updateAnswersBody](r)
+		if err != nil {
+			return err
+		}
+
+		boardNum, err := strconv.ParseUint(boardNumStr, 10, 0)
+		if err != nil {
+			return utils.SendJSON(w, 400, route_types.ErrorRes{
+				Message: "invalid board number",
+			})
+		}
+
+		userRes, err := user.GetUserByToken(db, body.UserToken)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return utils.SendJSON(w, 400, route_types.ErrorRes{
+					Message: "invalid user_token",
+				})
+			}
+
+			return err
+		}
+
+		boardRes, err := board.GetBoardByNum(db, uint(boardNum))
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return utils.SendJSON(w, 400, route_types.ErrorRes{
+					Message: "invalid board number",
+				})
+			}
+			return err
+		}
+
+		// What if answers does not exist? Can happen if there were internet problems
+		answerRes, err := answer.GetAnswer(db, userRes.ID, boardRes.ID)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+
+			answerRes, err = answer.CreateAnswer(db, userRes.ID, boardRes.ID)
+			if err != nil {
+				return err
+			}
+		}
+
+		pokemons, err := pokemon.GetPokemons(db)
+		if err != nil {
+			return err
+		}
+
+		validAnswers, err := board.GetValidAnswers(db, *boardRes, pokemons)
+		if err != nil {
+			return err
+		}
+
+		mapAnswers := [3][3]*string{
+			{(*answerRes).Cell11,
+				(*answerRes).Cell12,
+				(*answerRes).Cell13},
+			{(*answerRes).Cell21,
+				(*answerRes).Cell22,
+				(*answerRes).Cell23},
+			{(*answerRes).Cell31,
+				(*answerRes).Cell32,
+				(*answerRes).Cell33},
+		}
+
+		answerSetters := [3][3]func(val *string){
+			{func(val *string) { answerRes.Cell11 = val },
+				func(val *string) { answerRes.Cell12 = val },
+				func(val *string) { answerRes.Cell13 = val }},
+			{func(val *string) { answerRes.Cell21 = val },
+				func(val *string) { answerRes.Cell22 = val },
+				func(val *string) { answerRes.Cell23 = val }},
+			{func(val *string) { answerRes.Cell31 = val },
+				func(val *string) { answerRes.Cell32 = val },
+				func(val *string) { answerRes.Cell33 = val }},
+		}
+
+		for row := uint8(0); row <= 3; row++ {
+			for col := uint8(0); col <= 3; col++ {
+				if mapAnswers[row][col] != nil {
+					continue
+				}
+
+				isAnswerValid := utils.Some(validAnswers[row][col], func(p string) bool {
+					return p == body.Answers[row][col]
+				})
+
+				if !isAnswerValid {
+					return utils.SendJSON(w, 400, route_types.ErrorRes{
+						Message: "invalid answer",
+					})
+				}
+
+				answerSetters[row][col](&body.Answers[row][col])
+			}
+		}
+
+		if err := db.Save(&answerRes).Error; err != nil {
+			return err
+		}
+
+		return utils.SendJSON(w, 200, route_types.SuccessRes{
+			Message: "Updated answers.",
 		})
 	}
 }

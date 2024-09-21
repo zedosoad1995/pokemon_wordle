@@ -21,7 +21,7 @@ type BoardRes struct {
 
 type GetBoardHandlerRes struct {
 	Answers board.Answers `json:"answers"`
-	Board   BoardRes `json:"board"`
+	Board   BoardRes      `json:"board"`
 }
 
 func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
@@ -50,7 +50,7 @@ func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
 			return err
 		}
 
-		answers, err := board.GetAnswers(db, *boardObj, pokemons)
+		answers, err := board.GetValidAnswers(db, *boardObj, pokemons)
 		if err != nil {
 			return err
 		}
@@ -73,4 +73,3 @@ func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
 		return utils.SendJSON(w, 200, GetBoardHandlerRes{Answers: *answers, Board: boardRes})
 	}
 }
-

@@ -7,7 +7,28 @@ import (
 	"gorm.io/gorm"
 )
 
-func UpsertAnswer(db *gorm.DB, row, col int, answer, userId string, boardId, answerId uint) error {
+func GetAnswer(db *gorm.DB, userId, boardId uint) (*Answer, error) {
+	var answerRes Answer
+
+	if err := db.Where(&Answer{UserID: userId, BoardID: boardId}).First(&answerRes).Error; err != nil {
+		return nil, err
+	}
+
+	return &answerRes, nil
+}
+
+func CreateAnswer(db *gorm.DB, userId, boardId uint) (*Answer, error) {
+	var createdAnswer Answer
+	answerToCreate := Answer{BoardID: boardId, UserID: userId}
+
+	if err := db.Create(answerToCreate).Scan(&createdAnswer).Error; err != nil {
+		return nil, err
+	}
+
+	return &createdAnswer, nil
+}
+
+func UpsertSingleCell(db *gorm.DB, row, col int, answer string, userId, boardId, answerId uint) error {
 	colName := fmt.Sprintf("cell%d%d", row, col)
 	now := time.Now()
 
