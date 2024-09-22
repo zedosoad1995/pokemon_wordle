@@ -130,14 +130,15 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 		}
 
 		var res []struct {
-			BoardID  uint
-			Row1     string
-			Row2     string
-			Row3     string
-			Col1     string
-			Col2     string
-			Col3     string
-			AnswerID uint
+			BoardID    uint
+			Row1       string
+			Row2       string
+			Row3       string
+			Col1       string
+			Col2       string
+			Col3       string
+			AnswerID   uint
+			IsGameOver bool
 		}
 		query := `
 			SELECT 
@@ -148,7 +149,8 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 				boards.row1,
 				boards.row2,
 				boards.row3,
-				answers.id AS answer_id
+				answers.id AS answer_id,
+				answers.is_game_over
 			FROM boards
 			LEFT JOIN answers 
 				ON boards.id = answers.board_id AND answers.user_id = ?
@@ -161,6 +163,12 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 		if len(res) == 0 {
 			return utils.SendJSON(w, 400, route_types.ErrorRes{
 				Message: "invalid board number",
+			})
+		}
+
+		if res[0].IsGameOver {
+			return utils.SendJSON(w, 400, route_types.ErrorRes{
+				Message: "Answers have already been submitted.",
 			})
 		}
 
@@ -238,7 +246,6 @@ func updateAnswersHandler(db *gorm.DB) route_types.RouteHandler {
 			return err
 		}
 
-		// What if answers does not exist? Can happen if there were internet problems
 		answerRes, err := answer.GetAnswer(db, userRes.ID, boardRes.ID)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -249,6 +256,12 @@ func updateAnswersHandler(db *gorm.DB) route_types.RouteHandler {
 			if err != nil {
 				return err
 			}
+		}
+
+		if answerRes.IsGameOver {
+			return utils.SendJSON(w, 400, route_types.ErrorRes{
+				Message: "Answers have already been submitted.",
+			})
 		}
 
 		pokemons, err := pokemon.GetPokemons(db)
@@ -285,13 +298,19 @@ func updateAnswersHandler(db *gorm.DB) route_types.RouteHandler {
 				func(val *string) { answerRes.Cell33 = val }},
 		}
 
-		for row := uint8(0); row <= 3; row++ {
-			for col := uint8(0); col <= 3; col++ {
+		for row := uint8(0); row < 3; row++ {
+			for col := uint8(0); col < 3; col++ {
+				// If not nil check if body is sending the same value (shouldn't be able to edit)
 				if mapAnswers[row][col] != nil {
+					if *mapAnswers[row][col] != body.Answers[row][col] {
+						return utils.SendJSON(w, 400, route_types.ErrorRes{
+							Message: "invalid answer",
+						})
+					}
 					continue
 				}
 
-				isAnswerValid := utils.Some(validAnswers[row][col], func(p string) bool {
+				isAnswerValid := body.Answers[row][col] == "" || utils.Some(validAnswers[row][col], func(p string) bool {
 					return p == body.Answers[row][col]
 				})
 
@@ -301,10 +320,13 @@ func updateAnswersHandler(db *gorm.DB) route_types.RouteHandler {
 					})
 				}
 
-				answerSetters[row][col](&body.Answers[row][col])
+				if body.Answers[row][col] != "" {
+					answerSetters[row][col](&body.Answers[row][col])
+				}
 			}
 		}
 
+		answerRes.IsGameOver = true
 		if err := db.Save(&answerRes).Error; err != nil {
 			return err
 		}

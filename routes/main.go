@@ -18,7 +18,7 @@ func CreateRoutes(mux *http.ServeMux, db *gorm.DB) {
 
 	mux.HandleFunc("GET /api/boards/{boardNum}/answers/freq", errorHandler(getAnswersFreq(db)))
 	mux.HandleFunc("PUT /api/boards/{boardNum}/answers/one", errorHandler(updateAnswerHandler(db)))
-	mux.HandleFunc("PUT /api/boards/{boardNum}/answers", errorHandler(updateAnswersHandler(db)))
+	mux.HandleFunc("PUT /api/boards/{boardNum}/answers/submit", errorHandler(updateAnswersHandler(db)))
 
 	mux.HandleFunc("POST /api/users", errorHandler(createUserHandler(db)))
 }

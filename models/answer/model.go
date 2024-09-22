@@ -17,6 +17,5 @@ type Answer struct {
 	Cell31     *string
 	Cell32     *string
 	Cell33     *string
-	TriesLeft  uint8 `gorm:"default:10"`
-	IsGameOver bool  `gorm:"default:false"`
+	IsGameOver bool `gorm:"default:false"`
 }
