@@ -19,7 +19,7 @@ type getAnswersFreqRes struct {
 	Freqs [3][3]map[string]uint `json:"freqs"`
 }
 
-func getAnswersFreq(db *gorm.DB) route_types.RouteHandler {
+func getAnswersFreqHandler(db *gorm.DB) route_types.RouteHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		boardNumStr := r.PathValue("boardNum")
 		boardNum, err := strconv.ParseUint(boardNumStr, 10, 0)
