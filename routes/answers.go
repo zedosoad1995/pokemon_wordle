@@ -194,6 +194,7 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 			})
 		}
 
+		// TODO: Do not allow to update if it already has a response
 		if err := answer.UpsertSingleCell(db, body.Row, body.Col, body.Answer, userRes.ID, res[0].BoardID, res[0].AnswerID); err != nil {
 			return err
 		}

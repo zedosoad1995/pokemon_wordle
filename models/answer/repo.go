@@ -17,6 +17,17 @@ func GetAnswer(db *gorm.DB, userId, boardId uint) (*Answer, error) {
 	return &answerRes, nil
 }
 
+func CountAnswersFromBoard(db *gorm.DB, boardId uint) (*uint, error) {
+	var count int64
+
+	if err := db.Model(&Answer{}).Where("board_id = ?", boardId).Count(&count).Error; err != nil {
+		return nil, err
+	}
+
+	convCount := uint(count)
+	return &convCount, nil
+}
+
 func CreateAnswer(db *gorm.DB, userId, boardId uint) (*Answer, error) {
 	var createdAnswer Answer
 	answerToCreate := Answer{BoardID: boardId, UserID: userId}
