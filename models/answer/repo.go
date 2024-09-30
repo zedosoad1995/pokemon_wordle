@@ -41,7 +41,12 @@ func (currAnswer Answer) CalculateScore(freqs [3][3]map[string]uint) float64 {
 			if cell == nil {
 				score += 100
 			} else {
-				score += float64(freqs[i][j][*cell])
+				total := uint(0)
+				for _, value := range freqs[i][j] {
+					total += value
+				}
+
+				score += float64(freqs[i][j][*cell]) / float64(total) * 100
 			}
 		}
 	}

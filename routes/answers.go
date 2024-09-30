@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	error_consts "github.com/zedosoad1995/pokemon-wordle/constants/errors"
 	poke_questions "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/questions"
 	"github.com/zedosoad1995/pokemon-wordle/models/answer"
 	"github.com/zedosoad1995/pokemon-wordle/models/board"
@@ -319,6 +320,7 @@ func updateAnswersHandler(db *gorm.DB) route_types.RouteHandler {
 		if answerRes.IsGameOver {
 			return utils.SendJSON(w, 400, route_types.ErrorRes{
 				Message: "Answers have already been submitted.",
+				Code:    &error_consts.ALREADY_SUBMITED,
 			})
 		}
 
