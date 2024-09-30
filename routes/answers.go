@@ -15,18 +15,44 @@ import (
 	"gorm.io/gorm"
 )
 
-type getAnswersFreqRes struct {
-	Freqs [3][3]map[string]uint `json:"freqs"`
+type getAnswersFreqAndScoreRes struct {
+	Freqs        [3][3]map[string]uint `json:"freqs"`
+	IsGameOver   bool                  `json:"isGameOver"`
+	UserPosition *int                  `json:"userPosition"`
+	TotalPlays   int                   `json:"totalPlays"`
 }
 
-func getAnswersFreqHandler(db *gorm.DB) route_types.RouteHandler {
+func getAnswersFreqAndScoreHandler(db *gorm.DB) route_types.RouteHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
+		userToken := r.URL.Query().Get("userToken")
+
 		boardNumStr := r.PathValue("boardNum")
 		boardNum, err := strconv.ParseUint(boardNumStr, 10, 0)
 		if err != nil {
 			return utils.SendJSON(w, 400, route_types.ErrorRes{
 				Message: "invalid board number",
 			})
+		}
+
+		boardRes, err := board.GetBoardByNum(db, uint(boardNum))
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return utils.SendJSON(w, 400, route_types.ErrorRes{
+					Message: "invalid board number",
+				})
+			}
+			return err
+		}
+
+		userRes, err := user.GetUserByToken(db, userToken)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return utils.SendJSON(w, 400, route_types.ErrorRes{
+					Message: "invalid user_token",
+				})
+			}
+
+			return err
 		}
 
 		query := `
@@ -69,10 +95,10 @@ func getAnswersFreqHandler(db *gorm.DB) route_types.RouteHandler {
 			return err
 		}
 
-		var res [3][3]map[string]uint
-		for i := range res {
-			for j := range res[i] {
-				res[i][j] = make(map[string]uint)
+		var freqs [3][3]map[string]uint
+		for i := range freqs {
+			for j := range freqs[i] {
+				freqs[i][j] = make(map[string]uint)
 			}
 		}
 
@@ -86,11 +112,42 @@ func getAnswersFreqHandler(db *gorm.DB) route_types.RouteHandler {
 			rowNum := cellToRow[freq.Cell] - 1
 			colNum := cellToCol[freq.Cell] - 1
 
-			res[rowNum][colNum][freq.Pokemon] = freq.Freq
+			freqs[rowNum][colNum][freq.Pokemon] = freq.Freq
 		}
 
-		return utils.SendJSON(w, 200, getAnswersFreqRes{
-			Freqs: res,
+		allAnswers, err := answer.GetAnswers(db, uint(boardNum))
+		if err != nil {
+			return err
+		}
+
+		answerRes, err := answer.GetAnswer(db, userRes.ID, boardRes.ID)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+		hasFinishedGame := answerRes != nil && answerRes.IsGameOver
+
+		var userPosition *int = nil
+		if hasFinishedGame {
+			userPosition = new(int)
+
+			userScore := answerRes.CalculateScore(freqs)
+			*userPosition = 1
+
+			for _, currAnswer := range allAnswers {
+				score := currAnswer.CalculateScore(freqs)
+				if score < userScore {
+					*userPosition++
+				}
+			}
+		}
+
+		return utils.SendJSON(w, 200, getAnswersFreqAndScoreRes{
+			Freqs:        freqs,
+			IsGameOver:   hasFinishedGame,
+			UserPosition: userPosition,
+			TotalPlays:   len(allAnswers),
 		})
 	}
 }
@@ -337,110 +394,3 @@ func updateAnswersHandler(db *gorm.DB) route_types.RouteHandler {
 		})
 	}
 }
-
-/* func getScoresHandler(db *gorm.DB) route_types.RouteHandler {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		boardNumStr := r.PathValue("boardNum")
-		userToken := r.URL.Query().Get("user_token")
-
-		boardNum, err := strconv.ParseUint(boardNumStr, 10, 0)
-		if err != nil {
-			return utils.SendJSON(w, 400, route_types.ErrorRes{
-				Message: "invalid board number",
-			})
-		}
-
-		userRes, err := user.GetUserByToken(db, userToken)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return utils.SendJSON(w, 400, route_types.ErrorRes{
-					Message: "invalid user_token",
-				})
-			}
-
-			return err
-		}
-
-		boardRes, err := board.GetBoardByNum(db, uint(boardNum))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return utils.SendJSON(w, 400, route_types.ErrorRes{
-					Message: "invalid board number",
-				})
-			}
-			return err
-		}
-
-		answerRes, err := answer.GetAnswer(db, userRes.ID, boardRes.ID)
-		if err != nil {
-			return err
-		}
-
-		pokemons, err := pokemon.GetPokemons(db)
-		if err != nil {
-			return err
-		}
-
-
-		mapAnswers := [3][3]*string{
-			{(*answerRes).Cell11,
-				(*answerRes).Cell12,
-				(*answerRes).Cell13},
-			{(*answerRes).Cell21,
-				(*answerRes).Cell22,
-				(*answerRes).Cell23},
-			{(*answerRes).Cell31,
-				(*answerRes).Cell32,
-				(*answerRes).Cell33},
-		}
-
-		answerSetters := [3][3]func(val *string){
-			{func(val *string) { answerRes.Cell11 = val },
-				func(val *string) { answerRes.Cell12 = val },
-				func(val *string) { answerRes.Cell13 = val }},
-			{func(val *string) { answerRes.Cell21 = val },
-				func(val *string) { answerRes.Cell22 = val },
-				func(val *string) { answerRes.Cell23 = val }},
-			{func(val *string) { answerRes.Cell31 = val },
-				func(val *string) { answerRes.Cell32 = val },
-				func(val *string) { answerRes.Cell33 = val }},
-		}
-
-		for row := uint8(0); row < 3; row++ {
-			for col := uint8(0); col < 3; col++ {
-				// If not nil check if body is sending the same value (shouldn't be able to edit)
-				if mapAnswers[row][col] != nil {
-					if *mapAnswers[row][col] != body.Answers[row][col] {
-						return utils.SendJSON(w, 400, route_types.ErrorRes{
-							Message: "invalid answer",
-						})
-					}
-					continue
-				}
-
-				isAnswerValid := body.Answers[row][col] == "" || utils.Some(validAnswers[row][col], func(p string) bool {
-					return p == body.Answers[row][col]
-				})
-
-				if !isAnswerValid {
-					return utils.SendJSON(w, 400, route_types.ErrorRes{
-						Message: "invalid answer",
-					})
-				}
-
-				if body.Answers[row][col] != "" {
-					answerSetters[row][col](&body.Answers[row][col])
-				}
-			}
-		}
-
-		answerRes.IsGameOver = true
-		if err := db.Save(&answerRes).Error; err != nil {
-			return err
-		}
-
-		return utils.SendJSON(w, 200, route_types.SuccessRes{
-			Message: "Updated answers.",
-		})
-	}
-} */

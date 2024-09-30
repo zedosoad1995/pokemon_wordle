@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	poke_questions "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/questions"
-	"github.com/zedosoad1995/pokemon-wordle/models/answer"
 	"github.com/zedosoad1995/pokemon-wordle/models/board"
 	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
 	route_types "github.com/zedosoad1995/pokemon-wordle/routes/types"
@@ -21,9 +20,8 @@ type BoardRes struct {
 }
 
 type GetBoardHandlerRes struct {
-	Answers    board.Answers `json:"answers"`
-	Board      BoardRes      `json:"board"`
-	TotalPlays uint          `json:"totalPlays"`
+	Answers board.Answers `json:"answers"`
+	Board   BoardRes      `json:"board"`
 }
 
 func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
@@ -67,20 +65,14 @@ func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
 			return poke_questions.AllQuestions[row].Text
 		})
 
-		count, err := answer.CountAnswersFromBoard(db, boardObj.ID)
-		if err != nil {
-			return err
-		}
-
 		boardRes := BoardRes{
 			Cols: transformedCols,
 			Rows: transformedRows,
 		}
 
 		return utils.SendJSON(w, 200, GetBoardHandlerRes{
-			Answers:    *answers,
-			Board:      boardRes,
-			TotalPlays: *count,
+			Answers: *answers,
+			Board:   boardRes,
 		})
 	}
 }
