@@ -1,7 +1,6 @@
 package board
 
 import (
-	"fmt"
 	"time"
 
 	poke_questions "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/questions"
@@ -89,18 +88,6 @@ type Answers [3][3][]string
 func GetValidAnswers(db *gorm.DB, board Board, pokemons pokemon.PokemonList) (*Answers, error) {
 	rows := []string{board.Row1, board.Row2, board.Row3}
 	cols := []string{board.Col1, board.Col2, board.Col3}
-
-	for _, row := range rows {
-		if !utils.Includes(poke_questions.QuestionLabels, row) {
-			return nil, fmt.Errorf("question %v does not exist", row)
-		}
-	}
-
-	for _, col := range cols {
-		if !utils.Includes(poke_questions.QuestionLabels, col) {
-			return nil, fmt.Errorf("question %v does not exist", col)
-		}
-	}
 
 	var answers Answers
 	for i, row := range rows {
