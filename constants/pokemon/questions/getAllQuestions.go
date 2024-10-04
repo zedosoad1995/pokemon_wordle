@@ -46,13 +46,22 @@ func getAllQuestions() map[string]possibleQuestionsBody {
 				Label:     "StartsWithLetter:" + string(char),
 			}
 		},
+		NameHasLenEq: func(value string) questionsRes {
+			len, _ := strconv.Atoi(value)
+
+			return questionsRes{
+				Condition: pokemon.NameHasLenGreaterEq(len),
+				Text:      "Name has " + value + " characters",
+				Label:     "NameHasLenEq:" + value,
+			}
+		},
 		NameHasLenGreaterEq: func(value string) questionsRes {
 			len, _ := strconv.Atoi(value)
 
 			return questionsRes{
 				Condition: pokemon.NameHasLenGreaterEq(len),
 				Text:      "Name has " + value + " characters or more",
-				Label:     "StartsWithLetter:" + value,
+				Label:     "NameHasLenGreaterEq:" + value,
 			}
 		},
 		NameHasLenLessEq: func(value string) questionsRes {
@@ -65,21 +74,21 @@ func getAllQuestions() map[string]possibleQuestionsBody {
 			}
 		},
 		HeightGreaterEq: func(value string) questionsRes {
-			height, _ := strconv.Atoi(value)
+			height, _ := strconv.ParseFloat(value, 64)
 
 			// TODO: show conversion into feet
 
 			return questionsRes{
-				Condition: pokemon.NameHasLenLessEq(height),
+				Condition: pokemon.HeightGreaterEq(height),
 				Text:      "Has a height of " + value + "m or taller",
 				Label:     "HeightGreaterEq:" + value,
 			}
 		},
 		HeightLessEq: func(value string) questionsRes {
-			height, _ := strconv.Atoi(value)
+			height, _ := strconv.ParseFloat(value, 64)
 
 			return questionsRes{
-				Condition: pokemon.NameHasLenLessEq(height),
+				Condition: pokemon.HeightLessEq(height),
 				Text:      "Has a height of " + value + "m or shorter",
 				Label:     "HeightLessEq:" + value,
 			}

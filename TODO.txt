@@ -1,1 +1,17 @@
 Marowak is not of type fire. Check if there are more wrong types (sandshrew, sandslash, vulpix, ninetails, ...)
+
+...
+How to select random board:
+-pick 6 questions
+-check 10 possible positions: 
+123-456
+124-356
+125-346
+126-345
+134-256
+135-246
+136-245
+145-236
+146-235
+156-234
+-have some conditions: for example, each cell must have 3+ possible answers

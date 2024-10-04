@@ -22,6 +22,12 @@ func NameStartsWithLetter(char rune) func(Pokemon) bool {
 	}
 }
 
+func NameHasLenEq(length int) func(Pokemon) bool {
+	return func(p Pokemon) bool {
+		return len(p.Name) == length
+	}
+}
+
 func NameHasLenGreaterEq(length int) func(Pokemon) bool {
 	return func(p Pokemon) bool {
 		return len(p.Name) >= length

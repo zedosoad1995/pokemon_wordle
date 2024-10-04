@@ -11,6 +11,7 @@ const (
 	StartsWithLetter    = "StartsWithLetter"
 	NameHasLenGreaterEq = "NameHasLenGreaterEq"
 	NameHasLenLessEq    = "NameHasLenLessEq"
+	NameHasLenEq        = "NameHasLenEq"
 	HeightGreaterEq     = "HeightGreaterEq"
 	HeightLessEq        = "HeightLessEq"
 	WeightGreaterEq     = "WeightGreaterEq"
