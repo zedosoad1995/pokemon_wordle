@@ -1,37 +1,109 @@
 package poke_questions
 
 import (
-	poke_types "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/types"
+	"strconv"
+
 	"github.com/zedosoad1995/pokemon-wordle/models/pokemon"
 )
 
-type possibleQuestionsBody struct {
+type questionsRes struct {
 	Condition func(pokemon.Pokemon) bool
 	Text      string
+	Label     string
 }
+
+type possibleQuestionsBody func(string) questionsRes
 
 func getAllQuestions() map[string]possibleQuestionsBody {
 	allQuestions := map[string]possibleQuestionsBody{
-		HasOnlyOneType: {
-			Condition: pokemon.HasOnlyOneType,
-			Text:      "Only has one type",
+		HasOnlyOneType: func(value string) questionsRes {
+			return questionsRes{
+				Condition: pokemon.HasOnlyOneType,
+				Text:      "Only has one type",
+				Label:     "HasOnlyOneType",
+			}
 		},
-		HasTwoTypes: {
-			Condition: pokemon.HasTwoTypes,
-			Text:      "Has 2 types",
+		HasTwoTypes: func(value string) questionsRes {
+			return questionsRes{
+				Condition: pokemon.HasTwoTypes,
+				Text:      "Has 2 types",
+				Label:     "HasTwoTypes",
+			}
 		},
-	}
+		HasType: func(value string) questionsRes {
+			return questionsRes{
+				Condition: pokemon.HasType(value),
+				Text:      "Type " + value,
+				Label:     "HasType:" + value,
+			}
+		},
+		StartsWithLetter: func(value string) questionsRes {
+			char := rune(value[0])
 
-	for _, pokeType := range poke_types.AllPokeTypes {
-		label := HasType(pokeType)
-		text := "Type " + pokeType
+			return questionsRes{
+				Condition: pokemon.NameStartsWithLetter(char),
+				Text:      "Starts with the letter " + string(char),
+				Label:     "StartsWithLetter:" + string(char),
+			}
+		},
+		NameHasLenGreaterEq: func(value string) questionsRes {
+			len, _ := strconv.Atoi(value)
 
-		q := possibleQuestionsBody{
-			Text:      text,
-			Condition: pokemon.HasType(pokeType),
-		}
+			return questionsRes{
+				Condition: pokemon.NameHasLenGreaterEq(len),
+				Text:      "Name has " + value + " characters or more",
+				Label:     "StartsWithLetter:" + value,
+			}
+		},
+		NameHasLenLessEq: func(value string) questionsRes {
+			len, _ := strconv.Atoi(value)
 
-		allQuestions[label] = q
+			return questionsRes{
+				Condition: pokemon.NameHasLenLessEq(len),
+				Text:      "Name has " + value + " characters or less",
+				Label:     "NameHasLenLessEq:" + value,
+			}
+		},
+		HeightGreaterEq: func(value string) questionsRes {
+			height, _ := strconv.Atoi(value)
+
+			// TODO: show conversion into feet
+
+			return questionsRes{
+				Condition: pokemon.NameHasLenLessEq(height),
+				Text:      "Has a height of " + value + "m or taller",
+				Label:     "HeightGreaterEq:" + value,
+			}
+		},
+		HeightLessEq: func(value string) questionsRes {
+			height, _ := strconv.Atoi(value)
+
+			return questionsRes{
+				Condition: pokemon.NameHasLenLessEq(height),
+				Text:      "Has a height of " + value + "m or shorter",
+				Label:     "HeightLessEq:" + value,
+			}
+		},
+		WeightGreaterEq: func(value string) questionsRes {
+			weight, _ := strconv.ParseFloat(value, 64)
+
+			// TODO: show conversion into kgs
+
+			return questionsRes{
+				Condition: pokemon.WeightGreaterEq(weight),
+				Text:      "Has a weight of " + value + "kg or heavier",
+				Label:     "WeightGreaterEq:" + value,
+			}
+		},
+		WeightLessEq: func(value string) questionsRes {
+			weight, _ := strconv.ParseFloat(value, 64)
+
+			return questionsRes{
+				Condition: pokemon.WeightLessEq(weight),
+				Text:      "Has a weight of " + value + "kg or lighter",
+				Label:     "WeightLessEq:" + value,
+			}
+		},
 	}
 
 	return allQuestions

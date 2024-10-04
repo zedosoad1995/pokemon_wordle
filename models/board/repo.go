@@ -105,9 +105,12 @@ func GetValidAnswers(db *gorm.DB, board Board, pokemons pokemon.PokemonList) (*A
 	var answers Answers
 	for i, row := range rows {
 		for j, col := range cols {
+			rowLabel, rowVal := utils.ExtractLabelAndValue(row)
+			colLabel, colVal := utils.ExtractLabelAndValue(col)
+
 			filteredPokemons := pokemons.Filter(
-				poke_questions.AllQuestions[row].Condition,
-				poke_questions.AllQuestions[col].Condition,
+				poke_questions.AllQuestions[rowLabel](rowVal).Condition,
+				poke_questions.AllQuestions[colLabel](colVal).Condition,
 			)
 
 			answers[i][j] = utils.Map(filteredPokemons, func(p pokemon.Pokemon) string {

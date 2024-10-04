@@ -238,9 +238,13 @@ func updateAnswerHandler(db *gorm.DB) route_types.RouteHandler {
 
 		rows := []string{res[0].Row1, res[0].Row2, res[0].Row3}
 		cols := []string{res[0].Col1, res[0].Col2, res[0].Col3}
+
+		rowLabel, rowVal := utils.ExtractLabelAndValue(rows[body.Row-1])
+		colLabel, colVal := utils.ExtractLabelAndValue(cols[body.Col-1])
+
 		filteredPokemons := pokemons.Filter(
-			poke_questions.AllQuestions[rows[body.Row-1]].Condition,
-			poke_questions.AllQuestions[cols[body.Col-1]].Condition,
+			poke_questions.AllQuestions[rowLabel](rowVal).Condition,
+			poke_questions.AllQuestions[colLabel](colVal).Condition,
 		)
 
 		isAnswerValid := utils.Some(filteredPokemons, func(p pokemon.Pokemon) bool {

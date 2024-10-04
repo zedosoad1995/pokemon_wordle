@@ -59,10 +59,12 @@ func getBoardHandler(db *gorm.DB) route_types.RouteHandler {
 		rows := []string{boardObj.Row1, boardObj.Row2, boardObj.Row3}
 
 		transformedCols := utils.Map(cols, func(col string) string {
-			return poke_questions.AllQuestions[col].Text
+			colLabel, colVal := utils.ExtractLabelAndValue(col)
+			return poke_questions.AllQuestions[colLabel](colVal).Text
 		})
 		transformedRows := utils.Map(rows, func(row string) string {
-			return poke_questions.AllQuestions[row].Text
+			rowLabel, rowVal := utils.ExtractLabelAndValue(row)
+			return poke_questions.AllQuestions[rowLabel](rowVal).Text
 		})
 
 		boardRes := BoardRes{

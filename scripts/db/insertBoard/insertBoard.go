@@ -13,11 +13,11 @@ func main() {
 	db := db_pkg.Init()
 
 	board.Insert(db, board.InsertBody{
-		Col1: poke_questions.HasType(poke_types.Bug),
-		Col2: poke_questions.HasType(poke_types.Fire),
-		Col3: poke_questions.HasType(poke_types.Normal),
+		Col1: poke_questions.AllQuestions[poke_questions.HasType](poke_types.Bug).Label,
+		Col2: poke_questions.AllQuestions[poke_questions.HasType](poke_types.Fire).Label,
+		Col3: poke_questions.AllQuestions[poke_questions.HasType](poke_types.Normal).Label,
 		Row1: poke_questions.HasOnlyOneType,
 		Row2: poke_questions.HasTwoTypes,
-		Row3: poke_questions.HasType(poke_types.Flying),
+		Row3: poke_questions.AllQuestions[poke_questions.HasType](poke_types.Flying).Label,
 	})
 }

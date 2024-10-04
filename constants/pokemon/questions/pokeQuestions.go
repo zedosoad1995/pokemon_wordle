@@ -5,13 +5,17 @@ import (
 )
 
 const (
-	HasOnlyOneType = "HasOnlyOneType"
-	HasTwoTypes    = "HasTwoTypes"
+	HasOnlyOneType      = "HasOnlyOneType"
+	HasTwoTypes         = "HasTwoTypes"
+	HasType             = "HasType"
+	StartsWithLetter    = "StartsWithLetter"
+	NameHasLenGreaterEq = "NameHasLenGreaterEq"
+	NameHasLenLessEq    = "NameHasLenLessEq"
+	HeightGreaterEq     = "HeightGreaterEq"
+	HeightLessEq        = "HeightLessEq"
+	WeightGreaterEq     = "WeightGreaterEq"
+	WeightLessEq        = "WeightLessEq"
 )
-
-func HasType(pokeType string) string {
-	return "Has" + utils.CapitalizeFirstLetter(pokeType) + "Type"
-}
 
 var AllQuestions = getAllQuestions()
 
