@@ -2,12 +2,6 @@ package poke_questions
 
 import poke_types "github.com/zedosoad1995/pokemon-wordle/constants/pokemon/types"
 
-/*
-const (
-	NameHasLenLessEq    = "NameHasLenLessEq"
-)
-*/
-
 var ValidQuestions = []string{
 	AllQuestions[HasOnlyOneType]("").Label,
 	AllQuestions[HasTwoTypes]("").Label,
